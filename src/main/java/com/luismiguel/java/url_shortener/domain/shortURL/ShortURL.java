@@ -17,7 +17,7 @@ public class ShortURL {
     @Column(name = "id", nullable = false, unique = true)
     private Long id;
 
-    @Column(name = "short_code", nullable = false, unique = true)
+    @Column(name = "short_code", unique = true)
     private String shortCode;
 
     @Column(name = "original_url", nullable = false)
