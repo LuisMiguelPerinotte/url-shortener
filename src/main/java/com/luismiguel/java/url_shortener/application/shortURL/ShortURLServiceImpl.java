@@ -18,16 +18,8 @@ public class ShortURLServiceImpl implements ShortURLService {
     @Override
     @Transactional
     public ShortenedURLResponseDTO shortenURL(String url) {
-        ShortURL shortURL = ShortURL.create(url);
-        ShortURL savedShortURL = shortURLRepository.save(shortURL);
-        String shortCode = codeGenerator.generate(savedShortURL.getId());
-        savedShortURL.assignShortCode(shortCode);
-        shortURLRepository.save(savedShortURL);
-
-        return new ShortenedURLResponseDTO(
-                shortCode,
-                url
-        );
+        ShortURL shortURL = findOrCreate(url);
+        return new ShortenedURLResponseDTO(shortURL.getShortCode(), shortURL.getOriginalUrl());
     }
 
     @Override
@@ -37,4 +29,20 @@ public class ShortURLServiceImpl implements ShortURLService {
 
         return shortURL.getOriginalUrl();
     }
+
+    // private methods
+    private ShortURL findOrCreate(String url) {
+        return shortURLRepository.findByOriginalUrl(url)
+                .orElseGet(() -> createNewShortURL(url));
+    }
+
+    private ShortURL createNewShortURL(String url) {
+        ShortURL savedURL = shortURLRepository.save(ShortURL.create(url));
+        String shortCode = codeGenerator.generate(savedURL.getId());
+        savedURL.assignShortCode(shortCode);
+
+        return savedURL;
+    }
+
+
 }
