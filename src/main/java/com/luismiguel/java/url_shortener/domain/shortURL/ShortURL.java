@@ -1,5 +1,6 @@
 package com.luismiguel.java.url_shortener.domain.shortURL;
 
+import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.InvalidURLException;
 import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortCodeAlreadyAssignedException;
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,7 +21,7 @@ public class ShortURL {
     @Column(name = "short_code", unique = true)
     private String shortCode;
 
-    @Column(name = "original_url", nullable = false)
+    @Column(name = "original_url", nullable = false, unique = true)
     private String originalUrl;
 
     @Column(name = "active", nullable = false)
@@ -31,8 +32,11 @@ public class ShortURL {
     private LocalDateTime createdAt;
 
     public static ShortURL create(String originalUrl) {
+        if (originalUrl == null || originalUrl.isBlank())
+            throw new InvalidURLException();
+
         ShortURL url = new ShortURL();
-        url.originalUrl = originalUrl;
+        url.originalUrl = originalUrl.trim();
         url.active = true;
         return url;
     }
