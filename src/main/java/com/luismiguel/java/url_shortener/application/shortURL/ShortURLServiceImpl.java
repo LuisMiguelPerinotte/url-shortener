@@ -4,6 +4,7 @@ import com.luismiguel.java.url_shortener.domain.shortURL.ShortURL;
 import com.luismiguel.java.url_shortener.infrastructure.codeGenerator.CodeGenerator;
 import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortURLNotFoundException;
 import com.luismiguel.java.url_shortener.infrastructure.persistence.shortURL.ShortURLRepository;
+import com.luismiguel.java.url_shortener.web.dto.shortURL.response.GetShortenedURLStatsResponseDTO;
 import com.luismiguel.java.url_shortener.web.dto.shortURL.response.ShortenedURLResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -23,11 +24,26 @@ public class ShortURLServiceImpl implements ShortURLService {
     }
 
     @Override
+    @Transactional
     public String getOriginalURL(String shortCode) {
         ShortURL shortURL = shortURLRepository.findByShortCode(shortCode)
                 .orElseThrow(() -> new ShortURLNotFoundException(shortCode));
 
+        shortURLRepository.incrementClickCount(shortCode);
         return shortURL.getOriginalUrl();
+    }
+
+    @Override
+    public GetShortenedURLStatsResponseDTO getShortenedURLStats(String shortCode) {
+        ShortURL shortURL = shortURLRepository.findByShortCode(shortCode).
+                orElseThrow(() -> new ShortURLNotFoundException(shortCode));
+
+        return new GetShortenedURLStatsResponseDTO(
+                shortURL.getShortCode(),
+                shortURL.getOriginalUrl(),
+                shortURL.getClickCount(),
+                shortURL.getCreatedAt()
+        );
     }
 
     // private methods

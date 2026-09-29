@@ -24,6 +24,9 @@ public class ShortURL {
     @Column(name = "original_url", nullable = false, unique = true)
     private String originalUrl;
 
+    @Column(name = "click_count", nullable = false)
+    private Long clickCount;
+
     @Column(name = "active", nullable = false)
     private Boolean active;
 
@@ -38,6 +41,7 @@ public class ShortURL {
         ShortURL url = new ShortURL();
         url.originalUrl = originalUrl.trim();
         url.active = true;
+        url.clickCount = 0L;
         return url;
     }
 

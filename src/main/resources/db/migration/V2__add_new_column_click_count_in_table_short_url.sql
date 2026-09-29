@@ -1,0 +1,2 @@
+ALTER TABLE short_url
+ADD COLUMN click_count BIGSERIAL NOT NULL;

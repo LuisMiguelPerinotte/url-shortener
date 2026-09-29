@@ -2,6 +2,7 @@ package com.luismiguel.java.url_shortener.web.controller;
 
 import com.luismiguel.java.url_shortener.application.shortURL.ShortURLService;
 import com.luismiguel.java.url_shortener.web.dto.shortURL.request.ShortenURLRequestDTO;
+import com.luismiguel.java.url_shortener.web.dto.shortURL.response.GetShortenedURLStatsResponseDTO;
 import com.luismiguel.java.url_shortener.web.dto.shortURL.response.ShortenedURLResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -17,5 +18,10 @@ public class ShortURLController {
     @PostMapping
     public ResponseEntity<ShortenedURLResponseDTO> shortenUrl(@RequestBody ShortenURLRequestDTO requestDTO) {
         return new ResponseEntity<>(shortURLService.shortenURL(requestDTO.url()) , HttpStatus.CREATED);
+    }
+
+    @GetMapping("/{shortCode}/stats")
+    public ResponseEntity<GetShortenedURLStatsResponseDTO> getShortenedURLStats(@PathVariable String shortCode) {
+        return new ResponseEntity<>(shortURLService.getShortenedURLStats(shortCode), HttpStatus.OK);
     }
 }
