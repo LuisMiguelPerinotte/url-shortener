@@ -1,6 +1,6 @@
 package com.luismiguel.java.url_shortener.web.controller;
 
-import com.luismiguel.java.url_shortener.application.shortURL.ShortURLService;
+import com.luismiguel.java.url_shortener.application.service.ShortURLService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;

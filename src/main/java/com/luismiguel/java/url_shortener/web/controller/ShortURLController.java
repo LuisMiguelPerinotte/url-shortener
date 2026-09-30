@@ -1,6 +1,6 @@
 package com.luismiguel.java.url_shortener.web.controller;
 
-import com.luismiguel.java.url_shortener.application.shortURL.ShortURLService;
+import com.luismiguel.java.url_shortener.application.service.ShortURLService;
 import com.luismiguel.java.url_shortener.web.dto.shortURL.request.ShortenURLRequestDTO;
 import com.luismiguel.java.url_shortener.web.dto.shortURL.response.GetShortenedURLStatsResponseDTO;
 import com.luismiguel.java.url_shortener.web.dto.shortURL.response.ShortenedURLResponseDTO;
