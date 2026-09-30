@@ -1,10 +1,8 @@
-package com.luismiguel.java.url_shortener.application.shortURL;
+package com.luismiguel.java.url_shortener.application.service;
 
 import com.luismiguel.java.url_shortener.web.dto.shortURL.response.GetShortenedURLStatsResponseDTO;
 import com.luismiguel.java.url_shortener.web.dto.shortURL.response.ShortenedURLResponseDTO;
-import org.springframework.stereotype.Service;
 
-@Service
 public interface ShortURLService {
     ShortenedURLResponseDTO shortenURL(String url);
 

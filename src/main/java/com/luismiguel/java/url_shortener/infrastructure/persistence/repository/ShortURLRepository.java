@@ -1,6 +1,6 @@
-package com.luismiguel.java.url_shortener.infrastructure.persistence.shortURL;
+package com.luismiguel.java.url_shortener.infrastructure.persistence.repository;
 
-import com.luismiguel.java.url_shortener.domain.shortURL.ShortURL;
+import com.luismiguel.java.url_shortener.domain.entity.ShortURL;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

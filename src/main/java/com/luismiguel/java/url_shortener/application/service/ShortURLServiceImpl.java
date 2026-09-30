@@ -1,9 +1,9 @@
-package com.luismiguel.java.url_shortener.application.shortURL;
+package com.luismiguel.java.url_shortener.application.service;
 
-import com.luismiguel.java.url_shortener.domain.shortURL.ShortURL;
+import com.luismiguel.java.url_shortener.domain.entity.ShortURL;
 import com.luismiguel.java.url_shortener.infrastructure.codeGenerator.CodeGenerator;
 import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortURLNotFoundException;
-import com.luismiguel.java.url_shortener.infrastructure.persistence.shortURL.ShortURLRepository;
+import com.luismiguel.java.url_shortener.infrastructure.persistence.repository.ShortURLRepository;
 import com.luismiguel.java.url_shortener.web.dto.shortURL.response.GetShortenedURLStatsResponseDTO;
 import com.luismiguel.java.url_shortener.web.dto.shortURL.response.ShortenedURLResponseDTO;
 import lombok.RequiredArgsConstructor;

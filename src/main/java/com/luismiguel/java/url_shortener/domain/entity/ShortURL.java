@@ -1,4 +1,4 @@
-package com.luismiguel.java.url_shortener.domain.shortURL;
+package com.luismiguel.java.url_shortener.domain.entity;
 
 import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.InvalidURLException;
 import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortCodeAlreadyAssignedException;
