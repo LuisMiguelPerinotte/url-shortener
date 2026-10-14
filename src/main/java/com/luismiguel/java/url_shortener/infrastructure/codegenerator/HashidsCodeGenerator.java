@@ -1,4 +1,4 @@
-package com.luismiguel.java.url_shortener.infrastructure.codeGenerator;
+package com.luismiguel.java.url_shortener.infrastructure.codegenerator;
 
 import org.hashids.Hashids;
 import org.springframework.beans.factory.annotation.Value;

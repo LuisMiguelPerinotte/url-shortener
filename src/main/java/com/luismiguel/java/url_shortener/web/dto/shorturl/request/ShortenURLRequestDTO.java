@@ -1,4 +1,4 @@
-package com.luismiguel.java.url_shortener.web.dto.shortURL.request;
+package com.luismiguel.java.url_shortener.web.dto.shorturl.request;
 
 
 import jakarta.validation.constraints.NotBlank;

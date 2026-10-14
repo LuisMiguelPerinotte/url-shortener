@@ -1,4 +1,4 @@
-package com.luismiguel.java.url_shortener.infrastructure.codeGenerator;
+package com.luismiguel.java.url_shortener.infrastructure.codegenerator;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
