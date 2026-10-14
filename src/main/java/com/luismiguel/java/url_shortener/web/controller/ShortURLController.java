@@ -1,9 +1,9 @@
 package com.luismiguel.java.url_shortener.web.controller;
 
 import com.luismiguel.java.url_shortener.application.service.ShortURLService;
-import com.luismiguel.java.url_shortener.web.dto.shortURL.request.ShortenURLRequestDTO;
-import com.luismiguel.java.url_shortener.web.dto.shortURL.response.GetShortenedURLStatsResponseDTO;
-import com.luismiguel.java.url_shortener.web.dto.shortURL.response.ShortenedURLResponseDTO;
+import com.luismiguel.java.url_shortener.web.dto.shorturl.request.ShortenURLRequestDTO;
+import com.luismiguel.java.url_shortener.web.dto.shorturl.response.GetShortenedURLStatsResponseDTO;
+import com.luismiguel.java.url_shortener.web.dto.shorturl.response.ShortenedURLResponseDTO;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -18,11 +18,11 @@ public class ShortURLController {
 
     @PostMapping
     public ResponseEntity<ShortenedURLResponseDTO> shortenUrl(@Valid @RequestBody ShortenURLRequestDTO requestDTO) {
-        return new ResponseEntity<>(shortURLService.shortenURL(requestDTO.url()) , HttpStatus.CREATED);
+        return new ResponseEntity<>(ShortenedURLResponseDTO.from(shortURLService.shortenURL(requestDTO.url())), HttpStatus.CREATED);
     }
 
     @GetMapping("/{code}/stats")
     public ResponseEntity<GetShortenedURLStatsResponseDTO> getShortenedURLStats(@PathVariable String code) {
-        return new ResponseEntity<>(shortURLService.getShortenedURLStats(code), HttpStatus.OK);
+        return new ResponseEntity<>(GetShortenedURLStatsResponseDTO.from(shortURLService.getShortenedURLStats(code)), HttpStatus.OK);
     }
 }

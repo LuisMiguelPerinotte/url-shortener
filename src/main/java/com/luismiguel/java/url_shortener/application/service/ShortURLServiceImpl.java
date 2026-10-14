@@ -1,11 +1,11 @@
 package com.luismiguel.java.url_shortener.application.service;
 
+import com.luismiguel.java.url_shortener.application.model.ShortURLStats;
+import com.luismiguel.java.url_shortener.application.model.ShortenedURLResult;
 import com.luismiguel.java.url_shortener.domain.entity.ShortURL;
-import com.luismiguel.java.url_shortener.infrastructure.codeGenerator.CodeGenerator;
+import com.luismiguel.java.url_shortener.infrastructure.codegenerator.CodeGenerator;
 import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortURLNotFoundException;
 import com.luismiguel.java.url_shortener.infrastructure.persistence.repository.ShortURLRepository;
-import com.luismiguel.java.url_shortener.web.dto.shortURL.response.GetShortenedURLStatsResponseDTO;
-import com.luismiguel.java.url_shortener.web.dto.shortURL.response.ShortenedURLResponseDTO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,9 +18,9 @@ public class ShortURLServiceImpl implements ShortURLService {
 
     @Override
     @Transactional
-    public ShortenedURLResponseDTO shortenURL(String url) {
-        ShortURL shortURL = findOrCreate(url);
-        return new ShortenedURLResponseDTO(shortURL.getShortCode(), shortURL.getOriginalUrl());
+    public ShortenedURLResult shortenURL(String originalUrl) {
+        ShortURL shortURL = findOrCreate(originalUrl);
+        return new ShortenedURLResult(shortURL.getShortCode(), shortURL.getOriginalUrl());
     }
 
     @Override
@@ -34,11 +34,11 @@ public class ShortURLServiceImpl implements ShortURLService {
     }
 
     @Override
-    public GetShortenedURLStatsResponseDTO getShortenedURLStats(String shortCode) {
+    public ShortURLStats getShortenedURLStats(String shortCode) {
         ShortURL shortURL = shortURLRepository.findByShortCode(shortCode).
                 orElseThrow(() -> new ShortURLNotFoundException(shortCode));
 
-        return new GetShortenedURLStatsResponseDTO(
+        return new ShortURLStats(
                 shortURL.getShortCode(),
                 shortURL.getOriginalUrl(),
                 shortURL.getClickCount(),

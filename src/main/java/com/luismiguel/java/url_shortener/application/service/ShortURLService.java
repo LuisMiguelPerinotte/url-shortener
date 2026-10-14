@@ -1,12 +1,12 @@
 package com.luismiguel.java.url_shortener.application.service;
 
-import com.luismiguel.java.url_shortener.web.dto.shortURL.response.GetShortenedURLStatsResponseDTO;
-import com.luismiguel.java.url_shortener.web.dto.shortURL.response.ShortenedURLResponseDTO;
+import com.luismiguel.java.url_shortener.application.model.ShortURLStats;
+import com.luismiguel.java.url_shortener.application.model.ShortenedURLResult;
 
 public interface ShortURLService {
-    ShortenedURLResponseDTO shortenURL(String url);
+    ShortenedURLResult shortenURL(String originalUrl);
 
     String getOriginalURL(String shortCode);
 
-    GetShortenedURLStatsResponseDTO getShortenedURLStats(String shortCode);
+    ShortURLStats getShortenedURLStats(String shortCode);
 }

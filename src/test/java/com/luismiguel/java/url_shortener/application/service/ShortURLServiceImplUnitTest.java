@@ -1,11 +1,11 @@
 package com.luismiguel.java.url_shortener.application.service;
 
+import com.luismiguel.java.url_shortener.application.model.ShortURLStats;
+import com.luismiguel.java.url_shortener.application.model.ShortenedURLResult;
 import com.luismiguel.java.url_shortener.domain.entity.ShortURL;
-import com.luismiguel.java.url_shortener.infrastructure.codeGenerator.CodeGenerator;
+import com.luismiguel.java.url_shortener.infrastructure.codegenerator.CodeGenerator;
 import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortURLNotFoundException;
 import com.luismiguel.java.url_shortener.infrastructure.persistence.repository.ShortURLRepository;
-import com.luismiguel.java.url_shortener.web.dto.shortURL.response.GetShortenedURLStatsResponseDTO;
-import com.luismiguel.java.url_shortener.web.dto.shortURL.response.ShortenedURLResponseDTO;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -56,7 +56,7 @@ public class ShortURLServiceImplUnitTest {
             when(repository.save(any(ShortURL.class))).thenReturn(url);
             when(codeGenerator.generate(url.getId())).thenReturn("abc123");
 
-            ShortenedURLResponseDTO result = service.shortenURL(originalURL);
+            ShortenedURLResult result = service.shortenURL(originalURL);
 
             assertEquals("abc123", result.shortCode());
             verify(repository).save(any(ShortURL.class));
@@ -70,7 +70,7 @@ public class ShortURLServiceImplUnitTest {
 
             when(repository.findByOriginalUrl(originalURL)).thenReturn(Optional.of(url));
 
-            ShortenedURLResponseDTO result = service.shortenURL(originalURL);
+            ShortenedURLResult result = service.shortenURL(originalURL);
 
             assertEquals("abc123", result.shortCode());
             verify(repository, never()).save(any());
@@ -126,10 +126,10 @@ public class ShortURLServiceImplUnitTest {
 
             when(repository.findByShortCode(shortCode)).thenReturn(Optional.of(shortURL));
 
-            GetShortenedURLStatsResponseDTO result = service.getShortenedURLStats(shortCode);
+            ShortURLStats result = service.getShortenedURLStats(shortCode);
 
             assertEquals(shortCode, result.shortCode());
-            assertEquals("https://example.com", result.originalURL());
+            assertEquals("https://example.com", result.originalUrl());
             assertEquals(shortURL.getClickCount(), result.clickCount());
         }
 
