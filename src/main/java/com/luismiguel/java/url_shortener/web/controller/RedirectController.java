@@ -16,9 +16,9 @@ import java.net.URI;
 public class RedirectController {
     private final ShortURLService shortURLService;
 
-    @GetMapping("/{shortCode}")
-    public ResponseEntity<Void> redirect(@PathVariable String shortCode) {
-        String originalURL = shortURLService.getOriginalURL(shortCode);
+    @GetMapping("/{code}")
+    public ResponseEntity<Void> redirect(@PathVariable String code) {
+        String originalURL = shortURLService.getOriginalURL(code);
 
         HttpHeaders headers = new HttpHeaders();
         headers.setLocation(URI.create(originalURL));
