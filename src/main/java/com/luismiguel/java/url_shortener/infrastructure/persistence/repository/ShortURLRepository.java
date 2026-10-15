@@ -12,6 +12,11 @@ import java.util.Optional;
 public interface ShortURLRepository extends JpaRepository<ShortURL, Long> {
     Optional<ShortURL> findByShortCode(String shortCode);
 
+    @Query(value = """
+    SELECT * FROM short_url
+    WHERE md5(original_url) = md5(:originalURL)
+      AND original_url = :originalURL
+""", nativeQuery = true)
     Optional<ShortURL> findByOriginalUrl(String originalURL);
 
     @Modifying
