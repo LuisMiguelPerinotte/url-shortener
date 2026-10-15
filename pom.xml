@@ -11,21 +11,8 @@
 	<groupId>com.luismiguel.java</groupId>
 	<artifactId>url-shortener</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<name/>
-	<description/>
-	<url/>
-	<licenses>
-		<license/>
-	</licenses>
-	<developers>
-		<developer/>
-	</developers>
-	<scm>
-		<connection/>
-		<developerConnection/>
-		<tag/>
-		<url/>
-	</scm>
+	<name>url-shortener</name>
+	<description>URL shortener REST API built with Spring Boot, PostgreSQL and Hashids</description>
 	<properties>
 		<java.version>21</java.version>
 	</properties>
@@ -54,7 +41,6 @@
 			<groupId>org.hashids</groupId>
 			<artifactId>hashids</artifactId>
 			<version>1.0.3</version>
-			<scope>compile</scope>
 		</dependency>
 
 		<dependency>
