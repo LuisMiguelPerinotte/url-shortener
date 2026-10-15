@@ -2,9 +2,9 @@ package com.luismiguel.java.url_shortener.application.service;
 
 import com.luismiguel.java.url_shortener.application.model.ShortURLStats;
 import com.luismiguel.java.url_shortener.application.model.ShortenedURLResult;
+import com.luismiguel.java.url_shortener.application.port.CodeGenerator;
 import com.luismiguel.java.url_shortener.domain.entity.ShortURL;
-import com.luismiguel.java.url_shortener.infrastructure.codegenerator.CodeGenerator;
-import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortURLNotFoundException;
+import com.luismiguel.java.url_shortener.domain.exception.shorturl.ShortURLNotFoundException;
 import com.luismiguel.java.url_shortener.infrastructure.persistence.repository.ShortURLRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

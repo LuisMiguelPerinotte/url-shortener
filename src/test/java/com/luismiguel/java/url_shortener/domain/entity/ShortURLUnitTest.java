@@ -1,7 +1,6 @@
 package com.luismiguel.java.url_shortener.domain.entity;
 
-import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.InvalidURLException;
-import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortCodeAlreadyAssignedException;
+import com.luismiguel.java.url_shortener.domain.exception.shorturl.InvalidURLException;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
@@ -57,10 +56,10 @@ public class ShortURLUnitTest {
             assertEquals("shortCode", shortURL.getShortCode());
         }
 
-        @DisplayName("Should Throw ShortCodeAlreadyAssignedException When Already Set")
+        @DisplayName("Should Throw IllegalStateException When Already Set")
         @Test
-        void shouldThrowShortCodeAlreadyAssignedExceptionWhenAlreadySet() {
-            assertThrows(ShortCodeAlreadyAssignedException.class, () -> {
+        void shouldThrowIllegalStateExceptionWhenAlreadySet() {
+            assertThrows(IllegalStateException.class, () -> {
                 shortURL.assignShortCode("newShortCode");
             });
         }

@@ -1,5 +1,6 @@
 package com.luismiguel.java.url_shortener.infrastructure.codegenerator;
 
+import com.luismiguel.java.url_shortener.application.port.CodeGenerator;
 import org.hashids.Hashids;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;

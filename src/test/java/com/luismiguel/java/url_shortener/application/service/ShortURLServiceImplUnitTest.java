@@ -3,8 +3,8 @@ package com.luismiguel.java.url_shortener.application.service;
 import com.luismiguel.java.url_shortener.application.model.ShortURLStats;
 import com.luismiguel.java.url_shortener.application.model.ShortenedURLResult;
 import com.luismiguel.java.url_shortener.domain.entity.ShortURL;
-import com.luismiguel.java.url_shortener.infrastructure.codegenerator.CodeGenerator;
-import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortURLNotFoundException;
+import com.luismiguel.java.url_shortener.application.port.CodeGenerator;
+import com.luismiguel.java.url_shortener.domain.exception.shorturl.ShortURLNotFoundException;
 import com.luismiguel.java.url_shortener.infrastructure.persistence.repository.ShortURLRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -83,7 +83,7 @@ public class ShortURLServiceImplUnitTest {
     class GetOriginalURL {
 
         @Test
-        @DisplayName("")
+        @DisplayName("Should Return Original Url When Short Code Exists")
         void shouldReturnOriginalUrlWhenShortCodeExists() {
             String shortCode = "abc123";
             ShortURL shortURL = ShortURL.create("https://example.com");

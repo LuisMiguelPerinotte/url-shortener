@@ -1,7 +1,9 @@
 package com.luismiguel.java.url_shortener.infrastructure.exception;
 
-import com.luismiguel.java.url_shortener.infrastructure.exception.business.BusinessException;
+import com.luismiguel.java.url_shortener.domain.exception.category.InvalidInputException;
+import com.luismiguel.java.url_shortener.domain.exception.category.NotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -17,6 +19,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -32,20 +35,33 @@ public class GlobalExceptionHandler {
     }
 
 
-    @ExceptionHandler(BusinessException.class)
-    public ResponseEntity<Object> handleBusinessException(BusinessException e, HttpServletRequest request) {
+    @ExceptionHandler(NotFoundException.class)
+    public ResponseEntity<Object> handleNotFound(NotFoundException e, HttpServletRequest request) {
         HashMap<String, Object> body = errorBuilder(
-                e.getStatus(),
-                e.getStatus().name(),
+                HttpStatus.NOT_FOUND,
+                HttpStatus.NOT_FOUND.name(),
                 e.getMessage(),
                 request.getRequestURI()
         );
-        return new ResponseEntity<>(body, e.getStatus());
+        return new ResponseEntity<>(body, HttpStatus.NOT_FOUND);
+    }
+
+
+    @ExceptionHandler(InvalidInputException.class)
+    public ResponseEntity<Object> handleInvalidInput(InvalidInputException e, HttpServletRequest request) {
+        HashMap<String, Object> body = errorBuilder(
+                HttpStatus.UNPROCESSABLE_ENTITY,
+                HttpStatus.UNPROCESSABLE_ENTITY.name(),
+                e.getMessage(),
+                request.getRequestURI()
+        );
+        return new ResponseEntity<>(body, HttpStatus.UNPROCESSABLE_ENTITY);
     }
 
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGenericException(Exception exception, HttpServletRequest request){
+        log.error("Unexpected error on {}", request.getRequestURI(), exception);
         HashMap<String, Object> body = errorBuilder(
                 HttpStatus.INTERNAL_SERVER_ERROR,
                 HttpStatus.INTERNAL_SERVER_ERROR.name(),

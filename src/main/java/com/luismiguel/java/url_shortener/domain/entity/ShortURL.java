@@ -1,7 +1,6 @@
 package com.luismiguel.java.url_shortener.domain.entity;
 
-import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.InvalidURLException;
-import com.luismiguel.java.url_shortener.infrastructure.exception.business.shortURL.ShortCodeAlreadyAssignedException;
+import com.luismiguel.java.url_shortener.domain.exception.shorturl.InvalidURLException;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
@@ -47,7 +46,7 @@ public class ShortURL {
 
     public void assignShortCode(String code) {
         if (this.shortCode != null)
-            throw new ShortCodeAlreadyAssignedException();
+            throw new IllegalStateException("Short code already assigned");
         this.shortCode = code;
     }
 
