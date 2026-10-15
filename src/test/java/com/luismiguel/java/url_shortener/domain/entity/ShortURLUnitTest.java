@@ -40,6 +40,29 @@ public class ShortURLUnitTest {
     }
 
     @Nested
+    @DisplayName("normalize")
+    class Normalize {
+
+        @DisplayName("Should Return Null When Url Is Null")
+        @Test
+        void shouldReturnNullWhenUrlIsNull() {
+            assertNull(ShortURL.normalize(null));
+        }
+
+        @DisplayName("Should Trim Surrounding Spaces From Url")
+        @Test
+        void shouldTrimSurroundingSpacesFromUrl() {
+            assertEquals("https://x.com", ShortURL.normalize("  https://x.com  "));
+        }
+
+        @DisplayName("Should Return Url Unchanged When It Has No Surrounding Spaces")
+        @Test
+        void shouldReturnUrlUnchangedWhenItHasNoSurroundingSpaces() {
+            assertEquals("https://x.com", ShortURL.normalize("https://x.com"));
+        }
+    }
+
+    @Nested
     @DisplayName("assignShortCode")
     class AssignShortCode {
         ShortURL shortURL;

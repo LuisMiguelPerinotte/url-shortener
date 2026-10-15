@@ -33,12 +33,18 @@ public class ShortURL {
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
 
+    public static String normalize(String url) {
+        if (url == null)
+            return null;
+        return url.trim();
+    }
+
     public static ShortURL create(String originalUrl) {
         if (originalUrl == null || originalUrl.isBlank())
             throw new InvalidURLException();
 
         ShortURL url = new ShortURL();
-        url.originalUrl = originalUrl.trim();
+        url.originalUrl = normalize(originalUrl);
         url.active = true;
         url.clickCount = 0L;
         return url;

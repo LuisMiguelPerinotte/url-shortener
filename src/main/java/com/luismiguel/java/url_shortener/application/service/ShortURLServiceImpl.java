@@ -19,7 +19,8 @@ public class ShortURLServiceImpl implements ShortURLService {
     @Override
     @Transactional
     public ShortenedURLResult shortenURL(String originalUrl) {
-        ShortURL shortURL = findOrCreate(originalUrl);
+        String normalizedUrl = ShortURL.normalize(originalUrl);
+        ShortURL shortURL = findOrCreate(normalizedUrl);
         return new ShortenedURLResult(shortURL.getShortCode(), shortURL.getOriginalUrl());
     }
 
@@ -34,6 +35,7 @@ public class ShortURLServiceImpl implements ShortURLService {
     }
 
     @Override
+    @Transactional(readOnly = true)
     public ShortURLStats getShortenedURLStats(String shortCode) {
         ShortURL shortURL = shortURLRepository.findByShortCode(shortCode).
                 orElseThrow(() -> new ShortURLNotFoundException(shortCode));

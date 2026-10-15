@@ -76,6 +76,36 @@ public class ShortURLServiceImplUnitTest {
             verify(repository, never()).save(any());
             verify(codeGenerator, never()).generate(any());
         }
+
+        @Test
+        @DisplayName("Should Look Up Trimmed Url When Input Has Surrounding Spaces")
+        void shouldLookUpTrimmedUrlWhenInputHasSurroundingSpaces() {
+            ReflectionTestUtils.setField(url, "id", 1L);
+
+            when(repository.findByOriginalUrl(originalURL)).thenReturn(Optional.empty());
+            when(repository.save(any(ShortURL.class))).thenReturn(url);
+            when(codeGenerator.generate(url.getId())).thenReturn("abc123");
+
+            ShortenedURLResult result = service.shortenURL("  " + originalURL + "  ");
+
+            assertEquals("abc123", result.shortCode());
+            verify(repository).findByOriginalUrl(originalURL);
+            verify(repository).save(any(ShortURL.class));
+        }
+
+        @Test
+        @DisplayName("Should Return Existing Short URL When Input With Spaces Matches Trimmed Url")
+        void shouldReturnExistingShortURLWhenInputWithSpacesMatchesTrimmedUrl() {
+            url.assignShortCode("abc123");
+
+            when(repository.findByOriginalUrl(originalURL)).thenReturn(Optional.of(url));
+
+            ShortenedURLResult result = service.shortenURL("  " + originalURL + "  ");
+
+            assertEquals("abc123", result.shortCode());
+            verify(repository).findByOriginalUrl(originalURL);
+            verify(repository, never()).save(any());
+        }
     }
 
     @Nested
