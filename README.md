@@ -35,7 +35,7 @@ cp .env.example .env
 | `POSTGRES_DB_URL` | JDBC URL used by the application | `jdbc:postgresql://localhost:5432/url_shortener` |
 | `POSTGRES_DB_USER` | Database user | `postgres` |
 | `POSTGRES_DB_PASSWORD` | Database password | `change-me` |
-| `HASHIDS_SALT` | Secret salt used to generate short codes. Use a long random value and keep it private | `a-long-random-string` |
+| `HASHIDS_SALT` | Secret salt used to generate short codes. The example value is a weak development placeholder; in production use a long random secret. See [Security notes](#security-notes) | `dev-salt-change-me` |
 
 The `.env` file is ignored by git and is loaded automatically by the application at startup.
 
@@ -115,3 +115,10 @@ Errors share the same JSON structure:
 | `405 Method Not Allowed` | The HTTP method is not supported for the endpoint |
 | `415 Unsupported Media Type` | The request content type is not supported |
 | `500 Internal Server Error` | Unexpected error |
+
+## Security notes
+
+- **Salt.** The default salt (`dev-salt-local`) and the placeholder in `.env.example` are weak on purpose and exist only for development. In production, set a long, random `HASHIDS_SALT` kept as a secret, and do not reuse it across environments.
+- **Short codes are obfuscated, not encrypted.** Hashids encodes sequential database ids, so codes can be enumerated, and decoded by anyone who knows the salt. This is an accepted trade-off, the same as in public URL shorteners. `CodeGenerator` is a port, so codes can be replaced with random ones without touching the rest of the application.
+- **Statistics exposure.** The original URL is already public through the redirect (`GET /{code}`), so `GET /api/v1/short-url/{code}/stats` exposes nothing beyond `clickCount` and `createdAt`.
+- **No rate limiting yet.** Requests are not throttled. Rate limiting is on the roadmap.
