@@ -1,6 +1,7 @@
 package com.luismiguel.java.url_shortener.application.service;
 
 import com.luismiguel.java.url_shortener.TestcontainersConfiguration;
+import com.luismiguel.java.url_shortener.application.model.ShortenedURLResult;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,6 +25,7 @@ import java.util.function.IntFunction;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assertions.fail;
 
@@ -62,23 +64,25 @@ class ShortURLServiceConcurrencyTest {
         ExecutorService pair = Executors.newFixedThreadPool(2);
 
         try {
-            Future<String> first = pair.submit(() -> tx.execute(status -> {
-                String code = service.shortenURL(url).shortCode();
+            Future<ShortenedURLResult> first = pair.submit(() -> tx.execute(status -> {
+                ShortenedURLResult result = service.shortenURL(url);
                 t1Inserted.countDown();
                 awaitQuietly(releaseT1);
-                return code;
+                return result;
             }));
 
             assertTrue(t1Inserted.await(10, SECONDS), "first transaction never inserted the row");
 
-            Future<String> second = pair.submit(() -> service.shortenURL(url).shortCode());
+            Future<ShortenedURLResult> second = pair.submit(() -> service.shortenURL(url));
             awaitSecondTransactionBlocked();
             releaseT1.countDown();
 
-            String firstCode = first.get(30, SECONDS);
-            String secondCode = second.get(30, SECONDS);
+            ShortenedURLResult firstResult = first.get(30, SECONDS);
+            ShortenedURLResult secondResult = second.get(30, SECONDS);
 
-            assertEquals(firstCode, secondCode);
+            assertEquals(firstResult.shortCode(), secondResult.shortCode());
+            assertTrue(firstResult.created());
+            assertFalse(secondResult.created());
             assertEquals(1L, count(url));
         } finally {
             releaseT1.countDown();
@@ -91,9 +95,11 @@ class ShortURLServiceConcurrencyTest {
     void twentyConcurrentRequestsSameUrlProduceSingleRow() throws Exception {
         String url = newUrl();
 
-        List<String> codes = runConcurrently(20, i -> () -> service.shortenURL(url).shortCode());
+        List<ShortenedURLResult> results = runConcurrently(20, i -> () -> service.shortenURL(url));
 
-        assertEquals(1, codes.stream().distinct().count());
+        assertEquals(1, results.stream().map(ShortenedURLResult::shortCode).distinct().count());
+        assertEquals(1, results.stream().filter(ShortenedURLResult::created).count());
+        assertEquals(19, results.stream().filter(r -> !r.created()).count());
         assertEquals(1L, count(url));
     }
 
@@ -105,9 +111,10 @@ class ShortURLServiceConcurrencyTest {
             urls.add(newUrl());
         }
 
-        List<String> codes = runConcurrently(20, i -> () -> service.shortenURL(urls.get(i)).shortCode());
+        List<ShortenedURLResult> results = runConcurrently(20, i -> () -> service.shortenURL(urls.get(i)));
 
-        assertEquals(20, codes.stream().distinct().count());
+        assertEquals(20, results.stream().map(ShortenedURLResult::shortCode).distinct().count());
+        assertEquals(20, results.stream().filter(ShortenedURLResult::created).count());
         for (String url : urls) {
             assertEquals(1L, count(url));
         }
@@ -148,14 +155,14 @@ class ShortURLServiceConcurrencyTest {
         }
     }
 
-    private List<String> runConcurrently(int threads, IntFunction<Callable<String>> taskFactory)
+    private List<ShortenedURLResult> runConcurrently(int threads, IntFunction<Callable<ShortenedURLResult>> taskFactory)
             throws Exception {
         CountDownLatch ready = new CountDownLatch(threads);
         CountDownLatch start = new CountDownLatch(1);
-        List<Future<String>> futures = new ArrayList<>();
+        List<Future<ShortenedURLResult>> futures = new ArrayList<>();
 
         for (int i = 0; i < threads; i++) {
-            Callable<String> task = taskFactory.apply(i);
+            Callable<ShortenedURLResult> task = taskFactory.apply(i);
             futures.add(executor.submit(() -> {
                 ready.countDown();
                 start.await();
@@ -166,8 +173,8 @@ class ShortURLServiceConcurrencyTest {
         assertTrue(ready.await(10, SECONDS), "workers did not become ready");
         start.countDown();
 
-        List<String> results = new ArrayList<>();
-        for (Future<String> future : futures) {
+        List<ShortenedURLResult> results = new ArrayList<>();
+        for (Future<ShortenedURLResult> future : futures) {
             results.add(future.get(30, SECONDS));
         }
         return results;

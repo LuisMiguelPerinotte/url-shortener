@@ -20,7 +20,9 @@ import org.springframework.test.util.ReflectionTestUtils;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
@@ -60,6 +62,7 @@ public class ShortURLServiceImplUnitTest {
             ShortenedURLResult result = service.shortenURL(originalURL);
 
             assertEquals("abc123", result.shortCode());
+            assertTrue(result.created());
             verify(repository).save(any(ShortURL.class));
         }
 
@@ -74,6 +77,7 @@ public class ShortURLServiceImplUnitTest {
             ShortenedURLResult result = service.shortenURL(originalURL);
 
             assertEquals("abc123", result.shortCode());
+            assertFalse(result.created());
             verify(repository, never()).save(any());
             verify(codeGenerator, never()).generate(any());
         }
@@ -90,6 +94,7 @@ public class ShortURLServiceImplUnitTest {
             ShortenedURLResult result = service.shortenURL("  " + originalURL + "  ");
 
             assertEquals("abc123", result.shortCode());
+            assertTrue(result.created());
             verify(repository).findByOriginalUrl(originalURL);
             verify(repository).save(any(ShortURL.class));
         }
@@ -104,6 +109,7 @@ public class ShortURLServiceImplUnitTest {
             ShortenedURLResult result = service.shortenURL("  " + originalURL + "  ");
 
             assertEquals("abc123", result.shortCode());
+            assertFalse(result.created());
             verify(repository).findByOriginalUrl(originalURL);
             verify(repository, never()).save(any());
         }

@@ -1,5 +1,6 @@
 package com.luismiguel.java.url_shortener.web.controller;
 
+import com.luismiguel.java.url_shortener.application.model.ShortenedURLResult;
 import com.luismiguel.java.url_shortener.application.service.ShortURLService;
 import com.luismiguel.java.url_shortener.web.dto.shorturl.request.ShortenURLRequestDTO;
 import com.luismiguel.java.url_shortener.web.dto.shorturl.response.GetShortenedURLStatsResponseDTO;
@@ -18,7 +19,9 @@ public class ShortURLController {
 
     @PostMapping
     public ResponseEntity<ShortenedURLResponseDTO> shortenUrl(@Valid @RequestBody ShortenURLRequestDTO requestDTO) {
-        return new ResponseEntity<>(ShortenedURLResponseDTO.from(shortURLService.shortenURL(requestDTO.url())), HttpStatus.CREATED);
+        ShortenedURLResult result = shortURLService.shortenURL(requestDTO.url());
+        HttpStatus status = result.created() ? HttpStatus.CREATED : HttpStatus.OK;
+        return new ResponseEntity<>(ShortenedURLResponseDTO.from(result), status);
     }
 
     @GetMapping("/{code}/stats")

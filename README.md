@@ -76,7 +76,7 @@ Response (`201 Created`):
 }
 ```
 
-If the URL was already shortened, the existing short code is returned in the same response format.
+`201 Created` when the URL is new, `200 OK` when it was already shortened (same body).
 
 ### Get statistics
 `GET /api/v1/short-url/{code}/stats`

@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class ShortURLServiceImpl implements ShortURLService {
@@ -21,8 +23,15 @@ public class ShortURLServiceImpl implements ShortURLService {
     public ShortenedURLResult shortenURL(String originalUrl) {
         String normalizedUrl = ShortURL.normalize(originalUrl);
         shortURLRepository.acquireOriginalUrlLock(normalizedUrl); // must run before any read (READ COMMITTED)
-        ShortURL shortURL = findOrCreate(normalizedUrl);
-        return new ShortenedURLResult(shortURL.getShortCode(), shortURL.getOriginalUrl());
+        Optional<ShortURL> existing = shortURLRepository.findByOriginalUrl(normalizedUrl);
+
+        if (existing.isPresent()) {
+            ShortURL shortURL = existing.get();
+            return new ShortenedURLResult(shortURL.getShortCode(), shortURL.getOriginalUrl(), false);
+        }
+
+        ShortURL shortURL = createNewShortURL(normalizedUrl);
+        return new ShortenedURLResult(shortURL.getShortCode(), shortURL.getOriginalUrl(), true);
     }
 
     @Override
@@ -50,11 +59,6 @@ public class ShortURLServiceImpl implements ShortURLService {
     }
 
     // private methods
-    private ShortURL findOrCreate(String url) {
-        return shortURLRepository.findByOriginalUrl(url)
-                .orElseGet(() -> createNewShortURL(url));
-    }
-
     private ShortURL createNewShortURL(String url) {
         ShortURL savedURL = shortURLRepository.save(ShortURL.create(url));
         String shortCode = codeGenerator.generate(savedURL.getId());

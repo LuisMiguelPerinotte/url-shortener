@@ -2,6 +2,7 @@ package com.luismiguel.java.url_shortener.application.model;
 
 public record ShortenedURLResult(
         String shortCode,
-        String originalUrl
+        String originalUrl,
+        boolean created
 ) {
 }
