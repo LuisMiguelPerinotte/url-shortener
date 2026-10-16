@@ -20,6 +20,7 @@ public class ShortURLServiceImpl implements ShortURLService {
     @Transactional
     public ShortenedURLResult shortenURL(String originalUrl) {
         String normalizedUrl = ShortURL.normalize(originalUrl);
+        shortURLRepository.acquireOriginalUrlLock(normalizedUrl); // must run before any read (READ COMMITTED)
         ShortURL shortURL = findOrCreate(normalizedUrl);
         return new ShortenedURLResult(shortURL.getShortCode(), shortURL.getOriginalUrl());
     }

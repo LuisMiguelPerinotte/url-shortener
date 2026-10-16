@@ -11,6 +11,7 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InOrder;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
@@ -105,6 +106,20 @@ public class ShortURLServiceImplUnitTest {
             assertEquals("abc123", result.shortCode());
             verify(repository).findByOriginalUrl(originalURL);
             verify(repository, never()).save(any());
+        }
+
+        @Test
+        @DisplayName("Should Acquire Original Url Lock Before Looking Up Original Url")
+        void shouldAcquireOriginalUrlLockBeforeLookingUpOriginalUrl() {
+            url.assignShortCode("abc123");
+
+            when(repository.findByOriginalUrl(originalURL)).thenReturn(Optional.of(url));
+
+            service.shortenURL(originalURL);
+
+            InOrder inOrder = inOrder(repository);
+            inOrder.verify(repository).acquireOriginalUrlLock(originalURL);
+            inOrder.verify(repository).findByOriginalUrl(originalURL);
         }
     }
 
