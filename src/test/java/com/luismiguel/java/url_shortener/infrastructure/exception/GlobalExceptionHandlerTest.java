@@ -6,11 +6,13 @@ import com.luismiguel.java.url_shortener.domain.exception.shorturl.ShortURLNotFo
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -64,8 +66,23 @@ class GlobalExceptionHandlerTest {
                 .andExpect(jsonPath("$.path").value("/test/unexpected"));
     }
 
+    @Test
+    @DisplayName("Should Return 415 Without Null In Message When Content Type Is Missing")
+    void shouldReturn415WithoutNullWhenContentTypeIsMissing() throws Exception {
+        mockMvc.perform(post("/test/json-only").content("{}"))
+                .andExpect(status().isUnsupportedMediaType())
+                .andExpect(jsonPath("$.status").value(415))
+                .andExpect(jsonPath("$.error").value("UNSUPPORTED_MEDIA_TYPE"))
+                .andExpect(jsonPath("$.message").value("Content type is missing"))
+                .andExpect(jsonPath("$.path").value("/test/json-only"));
+    }
+
     @RestController
     static class FakeController {
+        @PostMapping(value = "/test/json-only", consumes = "application/json")
+        void jsonOnly() {
+        }
+
         @GetMapping("/test/not-found")
         void notFound() {
             throw new ShortURLNotFoundException("abc");

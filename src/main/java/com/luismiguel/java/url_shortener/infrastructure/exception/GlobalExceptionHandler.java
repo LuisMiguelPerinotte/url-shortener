@@ -119,7 +119,9 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
     public ResponseEntity<Object> handleMediaTypeNotSupported(HttpMediaTypeNotSupportedException exception, HttpServletRequest request) {
-        String message = "Content type " + exception.getContentType() + " is not supported";
+        String message = exception.getContentType() == null
+                ? "Content type is missing"
+                : "Content type " + exception.getContentType() + " is not supported";
 
         HashMap<String, Object> body = errorBuilder(
                 HttpStatus.UNSUPPORTED_MEDIA_TYPE,
