@@ -6,6 +6,7 @@
 ![Maven](https://img.shields.io/badge/Maven-C71A36?logo=apachemaven&logoColor=white)
 ![Flyway](https://img.shields.io/badge/Flyway-CC0200?logo=flyway&logoColor=white)
 ![Testcontainers](https://img.shields.io/badge/Testcontainers-2496ED?logo=docker&logoColor=white)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A REST API for shortening URLs, built as a portfolio project.
 
@@ -264,3 +265,7 @@ Docker must be running: the tests that use PostgreSQL (`ShortURLServiceConcurren
 - **Statistics exposure.** The original URL is already public through the redirect (`GET /{code}`), so `GET /api/v1/short-url/{code}/stats` exposes nothing beyond `clickCount` and `createdAt`.
 - **Database exposure.** The Compose file binds PostgreSQL to `127.0.0.1` only.
 - **No rate limiting yet.** Requests are not throttled. Rate limiting is on the roadmap.
+
+## License
+
+Distributed under the MIT License. See [LICENSE](LICENSE) for details.
