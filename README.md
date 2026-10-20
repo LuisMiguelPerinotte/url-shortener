@@ -6,6 +6,7 @@
 ![Maven](https://img.shields.io/badge/Maven-C71A36?logo=apachemaven&logoColor=white)
 ![Flyway](https://img.shields.io/badge/Flyway-CC0200?logo=flyway&logoColor=white)
 ![Testcontainers](https://img.shields.io/badge/Testcontainers-2496ED?logo=docker&logoColor=white)
+![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-6BA539?logo=openapiinitiative&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
 A REST API for shortening URLs, built as a portfolio project.
@@ -202,6 +203,12 @@ Response (`200 OK`):
 ### Redirect
 `GET /{code}` redirects (`302 Found`) to the original URL and increments the click count.
 
+### Interactive API documentation
+- Swagger UI: `http://localhost:8080/swagger-ui/index.html`
+- OpenAPI JSON: `http://localhost:8080/v3/api-docs`
+
+In production, the UI can be disabled with `springdoc.swagger-ui.enabled=false`, and the JSON document with `springdoc.api-docs.enabled=false`.
+
 ## Error responses
 
 Errors share the same JSON structure:
@@ -258,6 +265,7 @@ Docker must be running: the tests that use PostgreSQL (`ShortURLServiceConcurren
 | Error handling | `GlobalExceptionHandlerTest`: JSON error body and status for the handled exceptions, including the generic `500` (standalone MockMvc) |
 | Concurrency | `ShortURLServiceConcurrencyTest`: concurrent shortening against real PostgreSQL: a second transaction waits for the first and reuses its row, 20 concurrent requests for one URL produce a single row, and different URLs get distinct codes |
 | Context | `UrlShortenerApplicationTests`: full application context on PostgreSQL, so Flyway migrations and schema validation run |
+| API docs | `OpenApiDocsTest`: the OpenAPI document lists the paths and responses, and the Swagger UI is served next to the `/{code}` redirect route |
 
 ## Security notes
 
