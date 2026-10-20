@@ -94,6 +94,8 @@ erDiagram
     }
 ```
 
+`active` is a leftover column (default TRUE) that the entity no longer maps; it is kept because applied migrations are immutable.
+
 Indexes:
 - `UNIQUE (short_code)`
 - `UNIQUE INDEX ux_short_url_original_url_md5 ON short_url (md5(original_url))`

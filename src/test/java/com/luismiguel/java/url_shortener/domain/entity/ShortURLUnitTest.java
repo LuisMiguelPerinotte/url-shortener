@@ -14,11 +14,10 @@ public class ShortURLUnitTest {
     class Create {
         ShortURL shortURL;
 
-        @DisplayName("Should Create Short URL With Trimmed Url And Active True")
+        @DisplayName("Should Create Short URL With Trimmed Url")
         @Test
-        void shouldCreateShortURLWithTrimmedUrlAndActiveTrue() {
+        void shouldCreateShortURLWithTrimmedUrl() {
             shortURL = ShortURL.create("  originalURL  ");
-            assertTrue(shortURL.getActive());
             assertEquals("originalURL", shortURL.getOriginalUrl());
         }
 

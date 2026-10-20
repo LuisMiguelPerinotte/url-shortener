@@ -29,9 +29,6 @@ public class ShortURL {
     @Column(name = "click_count", nullable = false)
     private Long clickCount;
 
-    @Column(name = "active", nullable = false)
-    private Boolean active;
-
     @CreationTimestamp
     @Column(name = "created_at", updatable = false, nullable = false)
     private LocalDateTime createdAt;
@@ -56,7 +53,6 @@ public class ShortURL {
 
         ShortURL url = new ShortURL();
         url.originalUrl = normalized;
-        url.active = true;
         url.clickCount = 0L;
         return url;
     }
@@ -65,9 +61,5 @@ public class ShortURL {
         if (this.shortCode != null)
             throw new IllegalStateException("Short code already assigned");
         this.shortCode = code;
-    }
-
-    public void deactivate() {
-        this.active = false;
     }
 }
