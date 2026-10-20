@@ -8,6 +8,7 @@
 ![Testcontainers](https://img.shields.io/badge/Testcontainers-2496ED?logo=docker&logoColor=white)
 ![OpenAPI](https://img.shields.io/badge/OpenAPI-3.1-6BA539?logo=openapiinitiative&logoColor=white)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![CI](https://github.com/LuisMiguelPerinotte/url-shortener/actions/workflows/ci.yml/badge.svg)](https://github.com/LuisMiguelPerinotte/url-shortener/actions/workflows/ci.yml)
 
 A REST API for shortening URLs, built as a portfolio project.
 
@@ -254,6 +255,8 @@ Errors share the same JSON structure:
 ```
 
 Docker must be running: the tests that use PostgreSQL (`ShortURLServiceConcurrencyTest` and `UrlShortenerApplicationTests`) start a `postgres:16-alpine` container with Testcontainers through `TestcontainersConfiguration`.
+
+GitHub Actions runs `./mvnw -B verify` on every push and pull request to `main` and `develop` (see `.github/workflows/ci.yml`), using the Docker engine of the runner for Testcontainers.
 
 | Group | What it covers |
 |---|---|
