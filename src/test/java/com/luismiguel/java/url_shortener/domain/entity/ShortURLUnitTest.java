@@ -37,6 +37,21 @@ public class ShortURLUnitTest {
                 shortURL = ShortURL.create("");
             });
         }
+
+        @DisplayName("Should Throw InvalidUrlException When Url Is Not A Valid Uri")
+        @Test
+        void shouldThrowInvalidUrlExceptionWhenUrlIsNotAValidUri() {
+            assertThrows(InvalidURLException.class, () -> {
+                shortURL = ShortURL.create("https://example.com/a b");
+            });
+        }
+
+        @DisplayName("Should Keep Url When It Is A Valid Encoded Uri")
+        @Test
+        void shouldKeepUrlWhenItIsAValidEncodedUri() {
+            shortURL = ShortURL.create("https://example.com/a%20b");
+            assertEquals("https://example.com/a%20b", shortURL.getOriginalUrl());
+        }
     }
 
     @Nested

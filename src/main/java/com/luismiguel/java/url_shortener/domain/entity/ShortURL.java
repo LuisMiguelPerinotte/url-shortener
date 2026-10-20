@@ -5,6 +5,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.time.LocalDateTime;
 
 @Entity
@@ -43,8 +45,16 @@ public class ShortURL {
         if (originalUrl == null || originalUrl.isBlank())
             throw new InvalidURLException();
 
+        String normalized = normalize(originalUrl);
+        try {
+            new URI(normalized);
+
+        } catch (URISyntaxException e) {
+            throw new InvalidURLException();
+        }
+
         ShortURL url = new ShortURL();
-        url.originalUrl = normalize(originalUrl);
+        url.originalUrl = normalized;
         url.active = true;
         url.clickCount = 0L;
         return url;
