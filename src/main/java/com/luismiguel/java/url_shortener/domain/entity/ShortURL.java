@@ -19,10 +19,11 @@ public class ShortURL {
     @Column(name = "id", nullable = false, unique = true)
     private Long id;
 
-    @Column(name = "short_code", unique = true)
+    @Column(name = "short_code", unique = true, length = 10)
     private String shortCode;
 
-    @Column(name = "original_url", nullable = false, unique = true)
+    // uniqueness is enforced by the functional index ux_short_url_original_url_md5 (V3), not by a column constraint
+    @Column(name = "original_url", nullable = false)
     private String originalUrl;
 
     @Column(name = "click_count", nullable = false)
