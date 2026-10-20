@@ -11,7 +11,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.Optional;
 
 @Repository
-public interface ShortURLRepository extends JpaRepository<ShortURL, Long> {
+public interface ShortURLJpaRepository extends JpaRepository<ShortURL, Long> {
     Optional<ShortURL> findByShortCode(String shortCode);
 
     @Query(value = """
