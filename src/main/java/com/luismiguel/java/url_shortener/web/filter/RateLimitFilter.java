@@ -27,8 +27,9 @@ import java.util.Map;
 /**
  * Per-IP rate limit with two buckets: writes (POST /api/v1/short-url) and everything else (reads).
  * Shortcut: in-memory per instance; move to a shared store (e.g. Redis) if the app is scaled out.
- * The client IP comes from getRemoteAddr and X-Forwarded-For is ignored; behind a trusted proxy,
- * set server.forward-headers-strategy=framework.
+ * Shortcut: the client IP comes from getRemoteAddr(). Behind a reverse proxy it is only the real client IP if forwarded
+ * headers are applied: on Render set SERVER_FORWARD_HEADERS_STRATEGY=framework (verified 2026-10-21; without it every
+ * client shares one bucket). Forging X-Forwarded-For to dodge the limit has not been tested.
  */
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {

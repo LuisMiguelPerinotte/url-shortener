@@ -30,6 +30,15 @@ A REST API for shortening URLs, built as a portfolio project.
 - Exposes click statistics for a short code
 - Validates the submitted URL and returns structured JSON errors
 
+## Live demo
+The API is deployed on Render's free plan:
+
+- **Base URL:** https://url-shortener-tmq9.onrender.com
+- **Swagger UI:** https://url-shortener-tmq9.onrender.com/swagger-ui/index.html
+- **Health check:** https://url-shortener-tmq9.onrender.com/actuator/health
+
+> **Heads up:** on the free plan the service goes to sleep after 15 minutes without requests. The first request after a pause can take up to about a minute while it wakes up; the following ones are fast. The demo database is also on the free plan and may be reset, so short links created there are not permanent. Creating links is limited to 10 per minute per IP.
+
 ## Architecture
 
 The code is split into layers. Dependencies point inward: `web` and `infrastructure` depend on `application`, and `application` depends on `domain`. The `infrastructure` package implements the ports declared in `application/port`.
@@ -300,7 +309,7 @@ GitHub Actions runs `./mvnw -B verify` on every push and pull request to `main` 
 - **Database exposure.** The Compose file binds PostgreSQL to `127.0.0.1` only.
 - **Rate limit per IP.** `RateLimitFilter` (Bucket4j, with Caffeine holding the buckets) allows 10 writes per minute (`POST /api/v1/short-url`) and 120 requests per minute for everything else, configurable through `app.rate-limit.write-per-minute` and `app.rate-limit.read-per-minute`. Over the limit, the response is `429` with a `Retry-After` header in seconds. `/actuator`, `/swagger-ui` and `/v3/api-docs` are not limited.
 - **Rate limit scope.** The buckets live in memory, one set per instance. If the app is scaled out, the limit must move to a shared store such as Redis.
-- **Client IP.** The IP is taken from `getRemoteAddr` and `X-Forwarded-For` is ignored, so clients cannot choose their own IP. Behind a trusted reverse proxy, set `server.forward-headers-strategy=framework` so the proxy's forwarded address is used.
+- **Client IP.** The IP comes from `getRemoteAddr()`. Behind a reverse proxy it is only the real client IP if the forwarded headers are applied. On Render, set `SERVER_FORWARD_HEADERS_STRATEGY=framework` (verified on 2026-10-21: without the variable, all clients share one bucket; with it, each client has its own). Turn this on only behind a trusted proxy. Forging `X-Forwarded-For` to escape the limit has not been tested. The limit can be changed without code through `app.rate-limit.write-per-minute` and `app.rate-limit.read-per-minute` (environment variables `APP_RATE_LIMIT_WRITE_PER_MINUTE` and `APP_RATE_LIMIT_READ_PER_MINUTE`).
 - **Docker networking.** With the default bridge network, requests from the host reach the container through the gateway, so they all share one IP and one bucket. The application is published on `127.0.0.1` only.
 
 ## Health check and logs
