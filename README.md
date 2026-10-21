@@ -20,7 +20,7 @@ A REST API for shortening URLs, built as a portfolio project.
 - Hashids 1.0.3 (short code generation)
 - Lombok
 - JUnit 5, Mockito and Testcontainers (tests)
-- Docker Compose (local infrastructure)
+- Docker (multi-stage `Dockerfile`) and Docker Compose (PostgreSQL, plus the application under the `app` profile)
 
 ## Features
 - Shortens a URL into a short code generated with [Hashids](https://hashids.org/)
@@ -103,6 +103,10 @@ Indexes:
 ## Project structure
 
 ```
+Dockerfile                      multi-stage image (JDK build, JRE runtime, non-root user)
+docker-compose.yml              postgres (default) and app (profile "app")
+.dockerignore                   keeps .env, .git, target and the IDE files out of the image
+
 src/main/java/com/luismiguel/java/url_shortener/
 ├── UrlShortenerApplication.java
 ├── application/
@@ -167,6 +171,16 @@ Via the command line:
 Or from your IDE, running the main class `UrlShortenerApplication`.
 
 The API is available at `http://localhost:8080`. Flyway applies the database migrations on startup.
+
+### Run everything with Docker
+To run the database and the application together in containers:
+```bash
+docker compose --profile app up --build
+```
+
+The API is available at `http://localhost:8080`. The app is published on 127.0.0.1:8080 only, like the database. The `Dockerfile` builds a runtime image with a JRE and a non-root user; the tests are not run during the image build.
+
+The application service sits behind the `app` Compose profile, so `docker compose up -d` keeps starting only the database for local development. Inside the container the database host is the `postgres` service, not `localhost`, so the Compose file overrides `POSTGRES_DB_URL` for the application container. The other variables are still read from `.env`.
 
 ## Endpoints
 

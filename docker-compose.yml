@@ -19,5 +19,19 @@ services:
       timeout: 5s
       retries: 5
 
+  app:
+    profiles: ["app"]
+    build: .
+    container_name: url-shortener-app
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      # Inside the Compose network the database host is the service name, not localhost.
+      POSTGRES_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+    ports:
+      - "127.0.0.1:8080:8080"
+
 volumes:
   postgres_data:
