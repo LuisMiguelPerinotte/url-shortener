@@ -220,6 +220,9 @@ Response (`200 OK`):
 ### Redirect
 `GET /{code}` redirects (`302 Found`) to the original URL and increments the click count.
 
+### Health check
+`GET /actuator/health` returns `200 OK` with `{"status":"UP"}`. It is the only Actuator endpoint exposed; the others (such as `/actuator/env`) return `404`.
+
 ### Interactive API documentation
 - Swagger UI: `http://localhost:8080/swagger-ui/index.html`
 - OpenAPI JSON: `http://localhost:8080/v3/api-docs`
@@ -293,6 +296,14 @@ GitHub Actions runs `./mvnw -B verify` on every push and pull request to `main` 
 - **Statistics exposure.** The original URL is already public through the redirect (`GET /{code}`), so `GET /api/v1/short-url/{code}/stats` exposes nothing beyond `clickCount` and `createdAt`.
 - **Database exposure.** The Compose file binds PostgreSQL to `127.0.0.1` only.
 - **No rate limiting yet.** Requests are not throttled. Rate limiting is on the roadmap.
+
+## Health check and logs
+
+- **Health endpoint.** `/actuator/health` is the only Actuator endpoint exposed (`management.endpoints.web.exposure.include: health`).
+- **Container healthcheck.** The `app` service in `docker-compose.yml` calls `/actuator/health` with `wget` every 10 seconds; `docker ps` shows `healthy` or `unhealthy`.
+- **Log format.** Locally, logs are plain text. Inside the container, `LOGGING_STRUCTURED_FORMAT_CONSOLE=logstash` switches them to JSON (Spring Boot's built-in structured logging, no extra dependency).
+- **Levels.** `com.luismiguel` logs at `INFO` by default: one line when a short URL is created. Other events (reusing an existing short URL, redirects, not-found and validation errors) are logged at `DEBUG`. To see them, set `logging.level.com.luismiguel=DEBUG`.
+- **No full URLs in logs.** Logs only include the short code, never the original URL.
 
 ## License
 

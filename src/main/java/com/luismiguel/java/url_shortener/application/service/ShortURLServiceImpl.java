@@ -7,11 +7,13 @@ import com.luismiguel.java.url_shortener.application.port.ShortURLRepository;
 import com.luismiguel.java.url_shortener.domain.entity.ShortURL;
 import com.luismiguel.java.url_shortener.domain.exception.shorturl.ShortURLNotFoundException;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ShortURLServiceImpl implements ShortURLService {
@@ -27,10 +29,12 @@ public class ShortURLServiceImpl implements ShortURLService {
 
         if (existing.isPresent()) {
             ShortURL shortURL = existing.get();
+            log.debug("Short URL already exists: code={}", shortURL.getShortCode());
             return new ShortenedURLResult(shortURL.getShortCode(), shortURL.getOriginalUrl(), false);
         }
 
         ShortURL shortURL = createNewShortURL(normalizedUrl);
+        log.info("Short URL created: code={}", shortURL.getShortCode());
         return new ShortenedURLResult(shortURL.getShortCode(), shortURL.getOriginalUrl(), true);
     }
 
@@ -38,8 +42,12 @@ public class ShortURLServiceImpl implements ShortURLService {
     @Transactional
     public String getOriginalURL(String shortCode) {
         ShortURL shortURL = shortURLRepository.findByShortCode(shortCode)
-                .orElseThrow(() -> new ShortURLNotFoundException(shortCode));
+                .orElseThrow(() -> {
+                    log.debug("Short URL not found: code={}", shortCode);
+                    return new ShortURLNotFoundException(shortCode);
+                });
 
+        log.debug("Redirecting: code={}", shortCode);
         shortURLRepository.incrementClickCount(shortCode);
         return shortURL.getOriginalUrl();
     }
@@ -48,7 +56,10 @@ public class ShortURLServiceImpl implements ShortURLService {
     @Transactional(readOnly = true)
     public ShortURLStats getShortenedURLStats(String shortCode) {
         ShortURL shortURL = shortURLRepository.findByShortCode(shortCode).
-                orElseThrow(() -> new ShortURLNotFoundException(shortCode));
+                orElseThrow(() -> {
+                    log.debug("Short URL not found: code={}", shortCode);
+                    return new ShortURLNotFoundException(shortCode);
+                });
 
         return new ShortURLStats(
                 shortURL.getShortCode(),

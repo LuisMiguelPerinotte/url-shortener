@@ -37,6 +37,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(NotFoundException.class)
     public ResponseEntity<Object> handleNotFound(NotFoundException e, HttpServletRequest request) {
+        log.debug("{} on {}: {}", HttpStatus.NOT_FOUND, request.getRequestURI(), e.getMessage());
         HashMap<String, Object> body = errorBuilder(
                 HttpStatus.NOT_FOUND,
                 HttpStatus.NOT_FOUND.name(),
@@ -49,6 +50,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(InvalidInputException.class)
     public ResponseEntity<Object> handleInvalidInput(InvalidInputException e, HttpServletRequest request) {
+        log.debug("{} on {}: {}", HttpStatus.UNPROCESSABLE_ENTITY, request.getRequestURI(), e.getMessage());
         HashMap<String, Object> body = errorBuilder(
                 HttpStatus.UNPROCESSABLE_ENTITY,
                 HttpStatus.UNPROCESSABLE_ENTITY.name(),
@@ -93,6 +95,7 @@ public class GlobalExceptionHandler {
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
 
+        log.debug("{} on {}: {}", HttpStatus.BAD_REQUEST, request.getRequestURI(), message);
         HashMap<String, Object> body = errorBuilder(
                 HttpStatus.BAD_REQUEST,
                 HttpStatus.BAD_REQUEST.name(),

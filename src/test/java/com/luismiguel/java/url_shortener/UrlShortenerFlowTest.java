@@ -74,6 +74,14 @@ class UrlShortenerFlowTest {
         mockMvc.perform(get("/nope123"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404));
+
+        // (f) only the health endpoint is exposed from Actuator
+        mockMvc.perform(get("/actuator/health"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("UP"));
+
+        mockMvc.perform(get("/actuator/env"))
+                .andExpect(status().isNotFound());
     }
 
     private String readField(MvcResult result, String field) throws Exception {

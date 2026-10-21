@@ -30,8 +30,17 @@ services:
     environment:
       # Inside the Compose network the database host is the service name, not localhost.
       POSTGRES_DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB}
+      # JSON logs (Spring Boot structured logging) inside the container only; local runs keep plain text.
+      LOGGING_STRUCTURED_FORMAT_CONSOLE: logstash
     ports:
       - "127.0.0.1:8080:8080"
+
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q '\"status\":\"UP\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
 
 volumes:
   postgres_data:
