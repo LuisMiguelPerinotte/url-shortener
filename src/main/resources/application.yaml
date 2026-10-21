@@ -2,6 +2,9 @@ app:
   hashids:
     salt: ${HASHIDS_SALT:dev-salt-local}
     min-length: 6
+  rate-limit:
+    write-per-minute: 10
+    read-per-minute: 120
 
 spring:
   datasource:

@@ -53,6 +53,24 @@ public class RedirectController {
                                       "path": "/DQm5Q0"
                                     }"""))),
             @ApiResponse(
+                    responseCode = "429",
+                    description = "Too many requests from this IP (120 per minute by default). "
+                            + "The Retry-After header gives the number of seconds to wait",
+                    headers = @Header(
+                            name = HttpHeaders.RETRY_AFTER,
+                            description = "Seconds to wait before retrying",
+                            schema = @Schema(type = "integer", minimum = "1")),
+                    content = @Content(mediaType = "application/json", examples = @ExampleObject(
+                            name = "Rate limit exceeded",
+                            value = """
+                                    {
+                                      "timestamp": "2026-10-20T12:00:00Z",
+                                      "status": 429,
+                                      "error": "TOO_MANY_REQUESTS",
+                                      "message": "Too many requests",
+                                      "path": "/DQm5Q0"
+                                    }"""))),
+            @ApiResponse(
                     responseCode = "500",
                     description = "Unexpected server error",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(

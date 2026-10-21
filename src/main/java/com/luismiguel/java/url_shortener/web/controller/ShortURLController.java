@@ -7,6 +7,7 @@ import com.luismiguel.java.url_shortener.web.dto.shorturl.response.GetShortenedU
 import com.luismiguel.java.url_shortener.web.dto.shorturl.response.ShortenedURLResponseDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.headers.Header;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -15,6 +16,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -83,6 +85,24 @@ public class ShortURLController {
                                       "path": "/api/v1/short-url"
                                     }"""))),
             @ApiResponse(
+                    responseCode = "429",
+                    description = "Too many requests from this IP (10 per minute by default). "
+                            + "The Retry-After header gives the number of seconds to wait",
+                    headers = @Header(
+                            name = HttpHeaders.RETRY_AFTER,
+                            description = "Seconds to wait before retrying",
+                            schema = @Schema(type = "integer", minimum = "1")),
+                    content = @Content(mediaType = "application/json", examples = @ExampleObject(
+                            name = "Rate limit exceeded",
+                            value = """
+                                    {
+                                      "timestamp": "2026-10-20T12:00:00Z",
+                                      "status": 429,
+                                      "error": "TOO_MANY_REQUESTS",
+                                      "message": "Too many requests",
+                                      "path": "/api/v1/short-url"
+                                    }"""))),
+            @ApiResponse(
                     responseCode = "500",
                     description = "Unexpected server error",
                     content = @Content(mediaType = "application/json", examples = @ExampleObject(
@@ -124,6 +144,24 @@ public class ShortURLController {
                                       "status": 404,
                                       "error": "NOT_FOUND",
                                       "message": "Short URL with shortCode: DQm5Q0, not found!",
+                                      "path": "/api/v1/short-url/DQm5Q0/stats"
+                                    }"""))),
+            @ApiResponse(
+                    responseCode = "429",
+                    description = "Too many requests from this IP (120 per minute by default). "
+                            + "The Retry-After header gives the number of seconds to wait",
+                    headers = @Header(
+                            name = HttpHeaders.RETRY_AFTER,
+                            description = "Seconds to wait before retrying",
+                            schema = @Schema(type = "integer", minimum = "1")),
+                    content = @Content(mediaType = "application/json", examples = @ExampleObject(
+                            name = "Rate limit exceeded",
+                            value = """
+                                    {
+                                      "timestamp": "2026-10-20T12:00:00Z",
+                                      "status": 429,
+                                      "error": "TOO_MANY_REQUESTS",
+                                      "message": "Too many requests",
                                       "path": "/api/v1/short-url/DQm5Q0/stats"
                                     }"""))),
             @ApiResponse(

@@ -18,12 +18,13 @@ A REST API for shortening URLs, built as a portfolio project.
 - PostgreSQL 16
 - Flyway (database migrations)
 - Hashids 1.0.3 (short code generation)
+- Bucket4j 8.21 and Caffeine (per-IP rate limit)
 - Lombok
 - JUnit 5, Mockito and Testcontainers (tests)
 - Docker (multi-stage `Dockerfile`) and Docker Compose (PostgreSQL, plus the application under the `app` profile)
 
 ## Features
-- Shortens a URL into a short code generated with [Hashids](https://hashids.org/)
+- Shortens a URL into a short code generated with [Hashids](https://hashids.org/)   
 - Returns the same short code when the same URL is submitted again (no duplicate records)
 - Redirects short codes to the original URL and counts every click
 - Exposes click statistics for a short code
@@ -249,6 +250,7 @@ Errors share the same JSON structure:
 | `404 Not Found` | The short code does not exist, or the path does not match any resource |
 | `405 Method Not Allowed` | The HTTP method is not supported for the endpoint |
 | `415 Unsupported Media Type` | The request content type is not supported |
+| `429 Too Many Requests` | The IP exceeded its rate limit (see [Security notes](#security-notes)); `Retry-After` gives the seconds to wait |
 | `422 Unprocessable Entity` | The URL passed the request validation but cannot be parsed as a URI |
 | `500 Internal Server Error` | Unexpected error (the response does not include stack traces) |
 
@@ -285,6 +287,7 @@ GitHub Actions runs `./mvnw -B verify` on every push and pull request to `main` 
 | DTO validation | `ShortenURLRequestDTOTest`: `http`/`https` only and the 2048 character limit |
 | Controller | `ShortURLControllerTest` (`@WebMvcTest`): `201` for new URLs, `200` for existing ones, `400` for a disallowed scheme |
 | Error handling | `GlobalExceptionHandlerTest`: JSON error body and status for the handled exceptions, including the generic `500` (standalone MockMvc) |
+| Rate limit | `RateLimitFilterTest`: `429` with `Retry-After` and the error body when a write limit is exceeded, separate buckets per IP, independent read bucket, and actuator never limited (standalone MockMvc, no Spring context) |
 | Concurrency | `ShortURLServiceConcurrencyTest`: concurrent shortening against real PostgreSQL: a second transaction waits for the first and reuses its row, 20 concurrent requests for one URL produce a single row, and different URLs get distinct codes |
 | Context | `UrlShortenerApplicationTests`: full application context on PostgreSQL, so Flyway migrations and schema validation run |
 | API docs | `OpenApiDocsTest`: the OpenAPI document lists the paths and responses, and the Swagger UI is served next to the `/{code}` redirect route |
@@ -295,7 +298,10 @@ GitHub Actions runs `./mvnw -B verify` on every push and pull request to `main` 
 - **Short codes are obfuscated, not encrypted.** Hashids encodes sequential database ids, so codes can be enumerated, and decoded by anyone who knows the salt. This is an accepted trade-off, the same as in public URL shorteners. `CodeGenerator` is a port, so codes can be replaced with random ones without touching the rest of the application.
 - **Statistics exposure.** The original URL is already public through the redirect (`GET /{code}`), so `GET /api/v1/short-url/{code}/stats` exposes nothing beyond `clickCount` and `createdAt`.
 - **Database exposure.** The Compose file binds PostgreSQL to `127.0.0.1` only.
-- **No rate limiting yet.** Requests are not throttled. Rate limiting is on the roadmap.
+- **Rate limit per IP.** `RateLimitFilter` (Bucket4j, with Caffeine holding the buckets) allows 10 writes per minute (`POST /api/v1/short-url`) and 120 requests per minute for everything else, configurable through `app.rate-limit.write-per-minute` and `app.rate-limit.read-per-minute`. Over the limit, the response is `429` with a `Retry-After` header in seconds. `/actuator`, `/swagger-ui` and `/v3/api-docs` are not limited.
+- **Rate limit scope.** The buckets live in memory, one set per instance. If the app is scaled out, the limit must move to a shared store such as Redis.
+- **Client IP.** The IP is taken from `getRemoteAddr` and `X-Forwarded-For` is ignored, so clients cannot choose their own IP. Behind a trusted reverse proxy, set `server.forward-headers-strategy=framework` so the proxy's forwarded address is used.
+- **Docker networking.** With the default bridge network, requests from the host reach the container through the gateway, so they all share one IP and one bucket. The application is published on `127.0.0.1` only.
 
 ## Health check and logs
 
