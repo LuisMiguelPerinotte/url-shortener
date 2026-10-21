@@ -28,10 +28,54 @@ class RateLimitFilterTest {
 
     @BeforeEach
     void setUp() {
-        // Fresh filter per test so the buckets start empty: 2 writes and 3 reads per minute.
-        mockMvc = MockMvcBuilders.standaloneSetup(new FakeController())
-                .addFilters(new RateLimitFilter(new ObjectMapper(), 2, 3))
+        mockMvc = mockMvc(0);
+    }
+
+    // Fresh filter per call so the buckets start empty: 2 writes and 3 reads per minute.
+    private static MockMvc mockMvc(int proxyHops) {
+        return MockMvcBuilders.standaloneSetup(new FakeController())
+                .addFilters(new RateLimitFilter(new ObjectMapper(), 2, 3, proxyHops))
                 .build();
+    }
+
+    @Test
+    @DisplayName("Should Use Penultimate X-Forwarded-For Entry When Proxy Hops Is One")
+    void shouldUsePenultimateForwardedForEntryWhenProxyHopsIsOne() throws Exception {
+        MockMvc proxied = mockMvc(1);
+        // Left entries are client-forged and change every time; the real client is the penultimate one.
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.1, 198.51.100.7, 10.0.0.1"))
+                .andExpect(status().isOk());
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.2, 198.51.100.7, 10.0.0.1"))
+                .andExpect(status().isOk());
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.3, 198.51.100.7, 10.0.0.1"))
+                .andExpect(status().isTooManyRequests());
+
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.4, 198.51.100.8, 10.0.0.1"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Should Ignore X-Forwarded-For When Proxy Hops Is Zero")
+    void shouldIgnoreForwardedForWhenProxyHopsIsZero() throws Exception {
+        mockMvc.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.1")).andExpect(status().isOk());
+        mockMvc.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.2")).andExpect(status().isOk());
+        mockMvc.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.3"))
+                .andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    @DisplayName("Should Fall Back To Remote Address When Forwarded Chain Is Too Short")
+    void shouldFallBackToRemoteAddressWhenForwardedChainIsTooShort() throws Exception {
+        MockMvc proxied = mockMvc(1);
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.1")
+                        .with(remoteAddr("10.0.0.5")))
+                .andExpect(status().isOk());
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.2")
+                        .with(remoteAddr("10.0.0.5")))
+                .andExpect(status().isOk());
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.3")
+                        .with(remoteAddr("10.0.0.5")))
+                .andExpect(status().isTooManyRequests());
     }
 
     @Test

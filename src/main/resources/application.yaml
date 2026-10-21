@@ -8,6 +8,8 @@ app:
   rate-limit:
     write-per-minute: 10
     read-per-minute: 120
+    # trailing X-Forwarded-For entries added by trusted proxies; 0 = use getRemoteAddr(). On Render use 1 (APP_RATE_LIMIT_PROXY_HOPS)
+    proxy-hops: 0
 
 spring:
   datasource:
