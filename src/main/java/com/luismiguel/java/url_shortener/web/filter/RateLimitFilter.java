@@ -33,7 +33,7 @@ import java.util.Map;
  * Shortcut: in-memory per instance; move to a shared store (e.g. Redis) if the app is scaled out.
  * Shortcut: proxyHops = number of trusted proxies in front of the app (0 = use getRemoteAddr()); the client IP is
  * the n-th X-Forwarded-For entry from the right, the last entry being 1. Entries further left are client-controlled
- * and ignored.
+ * and ignored. Verified on Render on 2026-10-21: forged X-Forwarded-For and Forwarded headers did not create extra buckets, and a client on another network kept its own.
  */
 @Slf4j
 @Component
