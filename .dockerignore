@@ -1,0 +1,9 @@
+target
+.git
+.github
+.env
+.claude
+.idea
+*.iml
+.vscode
+README.md

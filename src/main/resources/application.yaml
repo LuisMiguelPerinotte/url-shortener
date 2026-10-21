@@ -1,3 +1,11 @@
+app:
+  hashids:
+    salt: ${HASHIDS_SALT:dev-salt-local}
+    min-length: 6
+  rate-limit:
+    write-per-minute: 10
+    read-per-minute: 120
+
 spring:
   datasource:
     url: ${POSTGRES_DB_URL}
@@ -6,7 +14,7 @@ spring:
 
   jpa:
     hibernate.ddl-auto: validate
-    show-sql: true
+    open-in-view: false
 
   flyway:
     enabled: true
@@ -14,3 +22,13 @@ spring:
 
   config:
     import: optional:file:.env[.properties]
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+
+logging:
+  level:
+    com.luismiguel: INFO
