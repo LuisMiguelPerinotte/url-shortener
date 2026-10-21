@@ -10,6 +10,7 @@ import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -21,19 +22,25 @@ import org.springframework.web.filter.OncePerRequestFilter;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
  * Per-IP rate limit with two buckets: writes (POST /api/v1/short-url) and everything else (reads).
  * Shortcut: in-memory per instance; move to a shared store (e.g. Redis) if the app is scaled out.
- * The client IP comes from getRemoteAddr and X-Forwarded-For is ignored; behind a trusted proxy,
- * set server.forward-headers-strategy=framework.
+ * Shortcut: proxyHops = number of trusted proxies in front of the app (0 = use getRemoteAddr()); the client IP is
+ * the n-th X-Forwarded-For entry from the right, the last entry being 1. Entries further left are client-controlled
+ * and ignored. Verified on Render on 2026-10-21: forged X-Forwarded-For and Forwarded headers did not create extra buckets, and a client on another network kept its own.
  */
+@Slf4j
 @Component
 public class RateLimitFilter extends OncePerRequestFilter {
 
     private static final String SHORTEN_PATH = "/api/v1/short-url";
+    private static final String FORWARDED_FOR = "X-Forwarded-For";
     private static final Duration WINDOW = Duration.ofMinutes(1);
 
     private final Cache<String, Bucket> writeBuckets;
@@ -41,13 +48,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final ObjectMapper objectMapper;
     private final int writePerMinute;
     private final int readPerMinute;
+    private final int proxyHops;
 
+    /**
+     * @param proxyHops number of trusted proxies in front of the app (0 = use getRemoteAddr()). The client IP is the
+     *                  n-th X-Forwarded-For entry from the right (1 = last entry).
+     */
     public RateLimitFilter(ObjectMapper objectMapper,
                            @Value("${app.rate-limit.write-per-minute:10}") int writePerMinute,
-                           @Value("${app.rate-limit.read-per-minute:120}") int readPerMinute) {
+                           @Value("${app.rate-limit.read-per-minute:120}") int readPerMinute,
+                           @Value("${app.rate-limit.proxy-hops:0}") int proxyHops) {
         this.objectMapper = objectMapper;
         this.writePerMinute = writePerMinute;
         this.readPerMinute = readPerMinute;
+        this.proxyHops = proxyHops;
         this.writeBuckets = newCache();
         this.readBuckets = newCache();
     }
@@ -67,7 +81,15 @@ public class RateLimitFilter extends OncePerRequestFilter {
         Cache<String, Bucket> cache = write ? writeBuckets : readBuckets;
         int limit = write ? writePerMinute : readPerMinute;
 
-        Bucket bucket = cache.get(request.getRemoteAddr(), key -> newBucket(limit));
+        String key = clientIp(request);
+        if (log.isDebugEnabled()) {
+            log.debug("Rate limit key={} remoteAddr={} X-Forwarded-For={} Forwarded={} True-Client-IP={} CF-Connecting-IP={} X-Real-IP={}",
+                    key, request.getRemoteAddr(), String.join(" | ", forwardedForLines(request)),
+                    request.getHeader("Forwarded"), request.getHeader("True-Client-IP"),
+                    request.getHeader("CF-Connecting-IP"), request.getHeader("X-Real-IP"));
+        }
+
+        Bucket bucket = cache.get(key, k -> newBucket(limit));
         ConsumptionProbe probe = bucket.tryConsumeAndReturnRemaining(1);
         if (probe.isConsumed()) {
             chain.doFilter(request, response);
@@ -75,6 +97,27 @@ public class RateLimitFilter extends OncePerRequestFilter {
         }
 
         writeTooManyRequests(request, response, probe.getNanosToWaitForRefill());
+    }
+
+    private String clientIp(HttpServletRequest request) {
+        if (proxyHops <= 0) {
+            return request.getRemoteAddr();
+        }
+        List<String> entries = new ArrayList<>();
+        for (String line : forwardedForLines(request)) {
+            for (String part : line.split(",")) {
+                String entry = part.trim();
+                if (!entry.isEmpty()) {
+                    entries.add(entry);
+                }
+            }
+        }
+        int index = entries.size() - proxyHops;
+        return index < 0 ? request.getRemoteAddr() : entries.get(index);
+    }
+
+    private static List<String> forwardedForLines(HttpServletRequest request) {
+        return Collections.list(request.getHeaders(FORWARDED_FOR));
     }
 
     private void writeTooManyRequests(HttpServletRequest request, HttpServletResponse response, long nanosToWait)

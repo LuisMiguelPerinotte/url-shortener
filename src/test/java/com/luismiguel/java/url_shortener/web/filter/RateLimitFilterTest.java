@@ -28,10 +28,84 @@ class RateLimitFilterTest {
 
     @BeforeEach
     void setUp() {
-        // Fresh filter per test so the buckets start empty: 2 writes and 3 reads per minute.
-        mockMvc = MockMvcBuilders.standaloneSetup(new FakeController())
-                .addFilters(new RateLimitFilter(new ObjectMapper(), 2, 3))
+        mockMvc = mockMvc(0);
+    }
+
+    // Fresh filter per call so the buckets start empty: 2 writes and 3 reads per minute.
+    private static MockMvc mockMvc(int proxyHops) {
+        return MockMvcBuilders.standaloneSetup(new FakeController())
+                .addFilters(new RateLimitFilter(new ObjectMapper(), 2, 3, proxyHops))
                 .build();
+    }
+
+    @Test
+    @DisplayName("Should Use Last X-Forwarded-For Entry When Proxy Hops Is One")
+    void shouldUseLastForwardedForEntryWhenProxyHopsIsOne() throws Exception {
+        MockMvc proxied = mockMvc(1);
+        // Left entries are client-forged and change every time; the real client is the last one.
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.1, 198.51.100.7"))
+                .andExpect(status().isOk());
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.2, 198.51.100.7"))
+                .andExpect(status().isOk());
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.3, 198.51.100.7"))
+                .andExpect(status().isTooManyRequests());
+
+        proxied.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.4, 198.51.100.8"))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @DisplayName("Should Ignore X-Forwarded-For When Proxy Hops Is Zero")
+    void shouldIgnoreForwardedForWhenProxyHopsIsZero() throws Exception {
+        mockMvc.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.1")).andExpect(status().isOk());
+        mockMvc.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.2")).andExpect(status().isOk());
+        mockMvc.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.3"))
+                .andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    @DisplayName("Should Fall Back To Remote Address When Forwarded Chain Is Too Short")
+    void shouldFallBackToRemoteAddressWhenForwardedChainIsTooShort() throws Exception {
+        // Two proxies but only one entry: the chain cannot hold the client, so getRemoteAddr() is used.
+        MockMvc twoHops = mockMvc(2);
+        twoHops.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.1")
+                        .with(remoteAddr("10.0.0.5")))
+                .andExpect(status().isOk());
+        twoHops.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.2")
+                        .with(remoteAddr("10.0.0.5")))
+                .andExpect(status().isOk());
+        twoHops.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.3")
+                        .with(remoteAddr("10.0.0.5")))
+                .andExpect(status().isTooManyRequests());
+
+        // No header at all with one hop: also falls back to getRemoteAddr().
+        MockMvc noHeader = mockMvc(1);
+        noHeader.perform(post(SHORTEN_PATH).with(remoteAddr("10.0.0.6"))).andExpect(status().isOk());
+        noHeader.perform(post(SHORTEN_PATH).with(remoteAddr("10.0.0.6"))).andExpect(status().isOk());
+        noHeader.perform(post(SHORTEN_PATH).with(remoteAddr("10.0.0.6")))
+                .andExpect(status().isTooManyRequests());
+    }
+
+    @Test
+    @DisplayName("Should Key On Client Entry Not Remote Address When Cloudflare Edge IP Changes")
+    void shouldKeyOnClientEntryWhenCloudflareEdgeIpChanges() throws Exception {
+        // Logged real case: the edge IP (remoteAddr) changes between requests, the header is the same.
+        MockMvc render = mockMvc(1);
+        String forwarded = "203.0.113.1,160.19.174.54";
+        render.perform(post(SHORTEN_PATH).header("X-Forwarded-For", forwarded)
+                        .with(remoteAddr("172.71.195.122")))
+                .andExpect(status().isOk());
+        render.perform(post(SHORTEN_PATH).header("X-Forwarded-For", forwarded)
+                        .with(remoteAddr("104.23.211.53")))
+                .andExpect(status().isOk());
+        render.perform(post(SHORTEN_PATH).header("X-Forwarded-For", forwarded)
+                        .with(remoteAddr("172.71.195.122")))
+                .andExpect(status().isTooManyRequests());
+
+        // A different real client behind the same edge gets its own bucket.
+        render.perform(post(SHORTEN_PATH).header("X-Forwarded-For", "203.0.113.1,160.19.174.99")
+                        .with(remoteAddr("104.23.211.53")))
+                .andExpect(status().isOk());
     }
 
     @Test

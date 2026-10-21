@@ -15,7 +15,7 @@ public class OpenApiConfig {
                 .info(new Info()
                         .title("URL Shortener API")
                         .description("REST API to shorten URLs, redirect short codes and read click statistics.")
-                        .version("1.1.0")
+                        .version("1.1.1")
                         .license(new License()
                                 .name("MIT License")
                                 .url("https://opensource.org/license/mit")));
