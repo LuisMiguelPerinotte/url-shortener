@@ -31,8 +31,9 @@ import java.util.Map;
 /**
  * Per-IP rate limit with two buckets: writes (POST /api/v1/short-url) and everything else (reads).
  * Shortcut: in-memory per instance; move to a shared store (e.g. Redis) if the app is scaled out.
- * Shortcut: client IP is getRemoteAddr() unless proxyHops > 0, then the n-th X-Forwarded-For entry from the right.
- * This assumes the app runs behind a proxy that appends to that header.
+ * Shortcut: proxyHops = number of trusted proxies in front of the app (0 = use getRemoteAddr()); the client IP is
+ * the n-th X-Forwarded-For entry from the right, the last entry being 1. Entries further left are client-controlled
+ * and ignored.
  */
 @Slf4j
 @Component
@@ -50,8 +51,8 @@ public class RateLimitFilter extends OncePerRequestFilter {
     private final int proxyHops;
 
     /**
-     * @param proxyHops number of trailing X-Forwarded-For entries appended by trusted proxies (0 = use getRemoteAddr()).
-     *                  Entries to the left of the first trusted one are client-controlled and ignored.
+     * @param proxyHops number of trusted proxies in front of the app (0 = use getRemoteAddr()). The client IP is the
+     *                  n-th X-Forwarded-For entry from the right (1 = last entry).
      */
     public RateLimitFilter(ObjectMapper objectMapper,
                            @Value("${app.rate-limit.write-per-minute:10}") int writePerMinute,
@@ -111,7 +112,7 @@ public class RateLimitFilter extends OncePerRequestFilter {
                 }
             }
         }
-        int index = entries.size() - 1 - proxyHops;
+        int index = entries.size() - proxyHops;
         return index < 0 ? request.getRemoteAddr() : entries.get(index);
     }
 
