@@ -12,6 +12,30 @@
 
 A REST API for shortening URLs, built as a portfolio project.
 
+## Table of Contents
+- [Stack](#stack)
+- [Features](#features)
+- [Live demo](#live-demo)
+- [Architecture](#architecture)
+  - [Request flow: POST /api/v1/short-url](#request-flow-post-apiv1short-url)
+- [Data model](#data-model)
+- [Project structure](#project-structure)
+- [Getting Started](#getting-started)
+  - [1. Create the environment file](#1-create-the-environment-file)
+  - [2. Start the infrastructure](#2-start-the-infrastructure)
+  - [3. Run the application](#3-run-the-application)
+  - [Run everything with Docker](#run-everything-with-docker)
+- [Endpoints](#endpoints)
+  - [Shorten a URL](#shorten-a-url)
+  - [Get statistics](#get-statistics)
+  - [Interactive API documentation](#interactive-api-documentation)
+- [Error responses](#error-responses)
+- [Design decisions](#design-decisions)
+- [Testing](#testing)
+- [Security notes](#security-notes)
+- [Health check and logs](#health-check-and-logs)
+- [License](#license)
+
 ## Stack
 - Java 21
 - Spring Boot 3.5 (Web, Data JPA, Validation)
